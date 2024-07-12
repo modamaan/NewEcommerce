@@ -1,0 +1,7 @@
+.row{
+    display: flex;
+    flex-wrap: wrap;
+}
+.row .adminorders{
+    flex: 1 1 10rem;
+}

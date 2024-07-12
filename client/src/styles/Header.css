@@ -1,0 +1,10 @@
+form{
+    display: flex;
+    flex-wrap: wrap;
+}
+form input{
+    flex: 1 1 7rem;
+}
+.container .smallheader{
+    margin-top: 1rem;
+}

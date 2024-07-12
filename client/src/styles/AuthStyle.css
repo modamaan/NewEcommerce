@@ -1,0 +1,19 @@
+/* ================= Register =================== */
+
+
+  /* ========================================= */
+
+  @media only screen and (max-width: 600px) {
+    .navbar>.container{
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-content: flex-end;
+      flex-direction: row-reverse;
+    }
+    .navbar-toggler{
+      margin-top: 10px;
+    }
+  }
+/*  */
+ 

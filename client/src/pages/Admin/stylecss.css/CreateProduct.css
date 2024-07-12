@@ -1,0 +1,11 @@
+.row{
+    display: flex;
+    flex-wrap: wrap;
+}
+.row .createproduct{
+    flex: 1 1 25rem;
+    margin-top: 2rem;
+}
+.row .h-createproduct{
+    text-align: center;
+}

@@ -1,0 +1,24 @@
+.row-2{
+    display: flex;
+    flex-wrap: wrap;
+}
+.row-2 .cartproduct{
+    display: flex;
+    flex-wrap: wrap;
+}
+.row-2 .cartproduct .productremove{
+    flex: 1 1 10rem;
+}
+.row-2 .cartpayment{
+    flex: 1 1 10rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+
+/* media query */
+@media (min-width:771px){
+    .row-2 .cartpayment{
+        margin-left: 2rem;
+    }
+}

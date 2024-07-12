@@ -1,0 +1,13 @@
+.row{
+    display: flex;
+    flex-wrap: wrap;
+}
+.row .managecategory{
+    display: flex;
+    flex-direction: column;
+    margin-top: 2rem;
+    flex: 1 1 0rem;
+}
+.row .h-managecategory{
+    text-align: center;
+}

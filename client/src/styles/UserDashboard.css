@@ -1,0 +1,8 @@
+.row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+.row .userdetails{
+    flex: 1 1 10rem;
+}

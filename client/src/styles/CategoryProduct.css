@@ -1,0 +1,11 @@
+.row .categoryproduct{
+    justify-content: center;
+    align-items: center;
+}
+.row{
+    margin-top: 2rem;
+}
+.row .categoryproduct .two-btn{
+    display: flex;
+    justify-content: center;
+}
