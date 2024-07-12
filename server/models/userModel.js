@@ -22,9 +22,9 @@ const userSchema = new mongoose.Schema({
         type:{},
         required:true
     },
-    answer:{
+    question:{
         type:String,
-        required:true,
+        required:true
     },
     role:{
         type:Number,

@@ -1,17 +1,19 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
-import { comparePassword, hashPassword } from "./../helpers/authHelper.js";
 import JWT from "jsonwebtoken";
+import {comparePassword, hashPassword}  from '../helpers/authHelper.js';
 
 export const registerController = async (req, res) => {
   try {
-    const { name, email, password, phone, address} = req.body;
+    const { name, email, password, phone, address,question} = req.body;
+    // console.log("NewData",name,email,question)
     const requiredFields = [
       "name",
       "email",
       "password",
       "phone",
-      "address"
+      "address",
+      "question",
     ];
 
     // Validation
@@ -35,15 +37,17 @@ export const registerController = async (req, res) => {
       });
     }
     // register user
+    console.log("beforeHashing",password);
     const hashedPassword = await hashPassword(password);
+    console.log("AfterHashing",hashedPassword);
     //save
     const user = await new userModel({
       name,
       email,
-      password,
+      password: hashedPassword,
       phone,
       address,
-      password: hashedPassword
+      question,
     }).save();
 
     res.status(201).send({
@@ -82,6 +86,7 @@ export const loginController = async (req, res) => {
       });
     }
     const match = await comparePassword(password, user.password);
+    
     if (!match) {
       return res.status(200).send({
         success: false,
@@ -101,6 +106,7 @@ export const loginController = async (req, res) => {
         email: user.email,
         phone: user.phone,
         address: user.address,
+        question: user.question,
         role: user.role,
       },
       token,

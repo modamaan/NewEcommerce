@@ -8,7 +8,6 @@ import dotenv from "dotenv"
 // import Stripe from 'stripe';
 
 
-
 // const stripe = new Stripe(process.env.YOUR_SECRET_API_KEY, {
 //   apiVersion: '2022-11-15', // Specify the Stripe API version
 // });
