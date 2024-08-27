@@ -379,7 +379,8 @@ export const createStripePaymentIntent = async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total * 100, // amount in cents
       currency: 'inr',
-      payment_method_types: ['card','googlePay'],
+      payment_method_types: ['card'],
+      // 'googlePay'
       description: `Payment for order with ${cart.length} items - ${description}`,
       customer: customerId,
     });
