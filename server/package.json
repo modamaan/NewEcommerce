@@ -14,7 +14,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "braintree": "^3.16.0",
     "colors": "^1.4.0",
     "concurrently": "^8.2.0",
@@ -28,6 +28,7 @@
     "nodemon": "^2.0.22",
     "redux": "^4.2.1",
     "slugify": "^1.6.6",
+    "stripe": "^16.8.0",
     "uuid": "^9.0.0"
   }
 }

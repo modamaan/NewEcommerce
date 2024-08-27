@@ -3,20 +3,20 @@
   "name": "KERALA FOOD STUFF",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "./images/kerala.jpg",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon",
       "purpose":"any maskable"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
+      "src": "./images/kerala.jpg",
+      "type": "image/jpg",
       "sizes": "192x192",
       "purpose":"any maskable"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
+      "src": "./images/kerala.jpg",
+      "type": "image/jpg",
       "sizes": "512x512",
       "purpose":"any maskable"
     }

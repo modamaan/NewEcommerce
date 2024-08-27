@@ -3,6 +3,7 @@ import categoryModel from "../models/categoryModel.js";
 import productModel from "../models/productModel.js";
 import orderModel from "../models/orderModel.js";
 import fs from "fs";
+import Stripe from "stripe";
 import braintree from "braintree";
 import dotenv from "dotenv"
 // import Stripe from 'stripe';
@@ -15,12 +16,12 @@ import dotenv from "dotenv"
 dotenv.config()
 
 // payment gatway
-var gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MARCHANT_ID,
-  publicKey:  process.env.BRAINTREE_PUBLICK_KEY,
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-});
+// var gateway = new braintree.BraintreeGateway({
+//   environment: braintree.Environment.Sandbox,
+//   merchantId: process.env.BRAINTREE_MARCHANT_ID,
+//   publicKey:  process.env.BRAINTREE_PUBLICK_KEY,
+//   privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+// });
 
 export const createProductController = async (req, res) => {
   try {
@@ -30,21 +31,21 @@ export const createProductController = async (req, res) => {
     // validation
     switch (true) {
       case !name:
-        return res.status(500).send({error: "Name is required" });
+        return res.status(500).send({ error: "Name is required" });
       case !description:
-        return res.status(500).send({error: "Description is required" });
+        return res.status(500).send({ error: "Description is required" });
       case !price:
-        return res.status(500).send({error: "Price is required" });
+        return res.status(500).send({ error: "Price is required" });
       case !category:
-        return res.status(500).send({error: "Category is required" });
+        return res.status(500).send({ error: "Category is required" });
       case !quantity:
-        return res.status(500).send({error: "Quantity is required" });
+        return res.status(500).send({ error: "Quantity is required" });
       case photo && photo.size > 1000000:
         return res.status(500).send({
-         error: "Photo is required and should be less than 1mb",
+          error: "Photo is required and should be less than 1mb",
         });
     }
-    
+
     const products = new productModel({ ...req.fields, slug: slugify(name) });
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
@@ -339,52 +340,145 @@ export const productCategoryController = async (req, res) => {
   }
 };
 
-// payment gatway api
 
-export const braintreeTokenController = async (req, res) => {
-  try {
-       gateway.clientToken.generate({}, function (err, response) {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        res.send(response);
-      }
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
 
-// payment
-export const brainTreePaymentController = async (req, res) => {
+// Initialize Stripe with your secret key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Replace with your Stripe secret key
+
+// Generate Stripe payment intent
+export const createStripeCustomer = async (req, res) => {
   try {
-    const { cart, nonce } = req.body;
-    let total = 0;
-    cart.map((i) => {
-      total += i.price;
-    });
-    let newTransaction = gateway.transaction.sale(
-      {
-        amount: total,
-        paymentMethodNonce: nonce,
-        options: {
-          submitForSettlement: true,
-        },
+    const { name, address } = req.body;
+
+    const customer = await stripe.customers.create({
+      name,
+      address: {
+        line1: address.line1,
+        postal_code: address.postal_code,
+        city: address.city,
+        state: address.state,
+        country: address.country,
       },
-      function (error, result) {
-        if (result) {
-          const order = new orderModel({
-            products: cart,
-            payment: result,
-            buyer: req.user._id,
-          }).save();
-          res.json({ ok: true });
-        } else {
-          res.status(500).send(error);
-        }
-      }
-    );
+    });
+
+    res.send({ customerId: customer.id });
   } catch (error) {
-    console.log(error);
+    console.error("Error creating customer:", error);
+    res.status(500).send({ error: error.message });
   }
 };
+
+// Generate Stripe payment intent
+export const createStripePaymentIntent = async (req, res) => {
+  try {
+    const { cart, customerId } = req.body;
+    const total = cart.reduce((sum, item) => sum + item.price * (item.count || 1), 0);
+
+    const description = cart.map(item => `${item.name}: ₹${item.price} x ${item.count || 1}`).join(", ");
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: total * 100, // amount in cents
+      currency: 'inr',
+      payment_method_types: ['card','googlePay'],
+      description: `Payment for order with ${cart.length} items - ${description}`,
+      customer: customerId,
+    });
+    // console.log("Secret sended: ",paymentIntent.client_secret);
+
+    res.send({
+      clientSecret: paymentIntent.client_secret, // Ensure this is included
+    });
+
+  } catch (error) {
+    console.error("Error creating payment intent:", error);
+    res.status(500).send({ error: error.message });
+  }
+};
+// Create Order Controller
+export const createOrderController = async (req, res) => {
+  try {
+    const { cart, paymentMethodId, paymentIntentId } = req.body;
+
+    if (!cart || !paymentMethodId || !paymentIntentId) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Confirm payment intent
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    // console.log("PaymentIntent",paymentIntent);
+
+
+    if (paymentIntent.status === 'succeeded') {
+      // Create a new order
+      // console.log("paymentIntent.status: ",paymentIntent.status);
+
+      const order = new orderModel({
+        products: cart,
+        payment: {
+          id: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          status: paymentIntent.status,
+        },
+        buyer: req.user._id,
+      });
+      await order.save();
+
+      res.status(201).json({ ok: true, message: 'Payment successful, order created' });
+    } else {
+      res.status(400).json({ message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+// // payment gatway api
+
+// export const braintreeTokenController = async (req, res) => {
+//   try {
+//        gateway.clientToken.generate({}, function (err, response) {
+//       if (err) {
+//         res.status(500).send(err);
+//       } else {
+//         res.send(response);
+//       }
+//     });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
+
+// // payment
+// export const brainTreePaymentController = async (req, res) => {
+//   try {
+//     const { cart, nonce } = req.body;
+//     let total = 0;
+//     cart.map((i) => {
+//       total += i.price;
+//     });
+//     let newTransaction = gateway.transaction.sale(
+//       {
+//         amount: total,
+//         paymentMethodNonce: nonce,
+//         options: {
+//           submitForSettlement: true,
+//         },
+//       },
+//       function (error, result) {
+//         if (result) {
+//           const order = new orderModel({
+//             products: cart,
+//             payment: result,
+//             buyer: req.user._id,
+//           }).save();
+//           res.json({ ok: true });
+//         } else {
+//           res.status(500).send(error);
+//         }
+//       }
+//     );
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };

@@ -1,6 +1,6 @@
 import express from 'express'
 import { isAdmin, requireSignIn } from '../middlewares/authMiddleware.js';
-import {brainTreePaymentController, braintreeTokenController, createProductController, deleteProductController, getProductController, getSingleProductController, productCategoryController, productCountController, productFilterController, productListController, productPhotoController, relatedProductController, searchProductController, updateProductController } from '../controllers/productController.js';
+import {createStripeCustomer,createStripePaymentIntent,createOrderController, createProductController, deleteProductController, getProductController, getSingleProductController, productCategoryController, productCountController, productFilterController, productListController, productPhotoController, relatedProductController, searchProductController, updateProductController } from '../controllers/productController.js';
 import formidable from 'express-formidable'
 // brainTreePaymentController
 //  braintreeTokenController,
@@ -43,11 +43,16 @@ router.get("/product-category/:slug",productCategoryController)
 
 // payment routes
 // token
-router.get('/braintree/token',braintreeTokenController)
+// router.get('/braintree/token',braintreeTokenController)
+router.post('/stripe/payment-intent', createStripePaymentIntent);
+
+// create-customer
+router.post('/stripe/create-customer',createStripeCustomer)
 
 
 // //payments
-router.post('/braintree/payment', requireSignIn,brainTreePaymentController)
+// router.post('/braintree/payment', requireSignIn,brainTreePaymentController)
+router.post('/stripe/create-order', requireSignIn, createOrderController);
 
 
 
